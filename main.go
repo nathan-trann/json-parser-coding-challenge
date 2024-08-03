@@ -26,12 +26,19 @@ func parseJSON(jsonStr string) (map[string]interface{}, error) {
 			return nil, err
 		}
 
+		i++
+
 		key, err := parseKey(jsonStr, &i)
 		if err != nil {
 			return nil, err
 		}
-		fmt.Println(key)
-		// res[key] := parseValue(jsonStr, &i)
+
+		value, err := parseValue(jsonStr, &i)
+		if err != nil {
+			return nil, err
+		}
+
+		res[key] = value
 
 		if i == len(jsonStr)-1 && ch != '}' {
 			err := getErrorMsg("Invalid JSON. Missing `}` at the end")
@@ -43,22 +50,21 @@ func parseJSON(jsonStr string) (map[string]interface{}, error) {
 
 func parseKey(jsonStr string, idx *int) (string, error) {
 	var key string
-	for i := *idx; i < len(jsonStr); i++ {
-		if jsonStr[i] == '"' {
-			for jsonStr[i] != ':' {
-				key += string(jsonStr[i])
-			}
-		}
+	for jsonStr[*idx] != ':' {
+		key += string(jsonStr[*idx])
+		*idx++
+	}
 
-		if key[len(key)-1] != '"' {
-			err := getErrorMsg(`Invalid JSON. Missing " at the end`)
-			return "", err
-		}
-
-		*idx = i
+	if key[len(key)-1] != '"' {
+		err := getErrorMsg(`Invalid JSON. Missing " at the end`)
+		return "", err
 	}
 
 	return key, nil
+}
+
+func parseValue(jsonStr string, idx *int) (string, error) {
+	return "value", nil
 }
 
 func getErrorMsg(msg string, args ...interface{}) error {
